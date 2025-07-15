@@ -2,110 +2,133 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+[RequireComponent(typeof(AudioSource))]
 public class NPCDialogue : MonoBehaviour
 {
     [Header("Dialogue Data")]
     [TextArea] public string[] dialogueLines;
-    public float  wordDelay            = 0.2f;
-    public float  audioSnippetDuration = 0.2f;
+    public float wordDelay = 0.2f;
+    public float audioSnippetDuration = 0.2f;
     public AudioClip speechAudioClip;
     public AudioClip skipAudioClip;
-    public float  interactionDistance  = 3f;
+    public float interactionDistance = 3f;
 
     [Header("References")]
-    public Transform      playerTransform;   // Your Player or Camera
-    public PlayerMovement playerMovement;    // Drag in your PlayerMovement script here
-    public Camera         mainCamera;        // Your main FPV camera
-    public Camera         dialogueCamera;    // Zoom-in camera on NPC’s face
-    public GameObject     dialoguePanel;     // World-space Canvas root
-    public TMP_Text       dialogueText;      // TextMeshPro UGUI component
+    public Transform playerTransform;      // Your Player or Camera
+    public PlayerMovement playerMovement;  // Drag your PlayerMovement script here
+    public Camera mainCamera;              // Player camera
+    public Camera dialogueCamera;          // NPC face camera
+    public GameObject dialoguePanel;       // World-space Canvas root
+    public TMP_Text dialogueText;          // TMPUGUI component
 
     [Header("Scene Transition")]
-    [Tooltip("Enable to transition to another scene after dialogue ends")]
     public bool enableSceneTransition = false;
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     [Tooltip("Drag the Scene asset you want to load (must be added to Build Settings)")]
     public SceneAsset nextSceneAsset;
-    #endif
+#endif
 
-    // internal state
+    private string nextSceneName;
+
+    // Audio
     private AudioSource speechSource, sfxSource;
-    private int        currentLineIndex = 0;
-    private bool       isDialogActive   = false;
-    private bool       isTyping         = false;
-    private Coroutine  typingCoroutine;
-    private string     nextSceneName;
+
+    // State
+    private int currentLineIndex = 0;
+    private bool isDialogActive = false;
+    private bool isTyping = false;
+    private Coroutine typingCoroutine;
+
+    // Input System
+    private PlayerControls controls;
 
     void Awake()
     {
-        // add & configure AudioSources
+        // Setup audio sources
         speechSource = gameObject.AddComponent<AudioSource>();
+        sfxSource = gameObject.AddComponent<AudioSource>();
         speechSource.clip = speechAudioClip;
-        sfxSource    = gameObject.AddComponent<AudioSource>();
 
-        // determine scene name at runtime
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         if (nextSceneAsset != null)
             nextSceneName = nextSceneAsset.name;
-        #endif
+#endif
 
-        // hide dialogue UI + dialogue camera initially
+        // Hide dialogue UI and camera
         dialoguePanel.SetActive(false);
         dialogueCamera.enabled = false;
+
+        // Setup Input System
+        controls = new PlayerControls();
+    }
+
+    void OnEnable()
+    {
+        controls.Enable();
+    }
+
+    void OnDisable()
+    {
+        controls.Disable();
     }
 
     void Update()
     {
-        // only allow pressing Space to start/advance when in range
+        // If player is too far, do nothing
         if (Vector3.Distance(playerTransform.position, transform.position) > interactionDistance)
             return;
 
-        if (!isDialogActive && Input.GetKeyDown(KeyCode.Space))
+        // Check the Interact action (Square button) in the Player map
+        if (!isDialogActive && controls.Player.Interact.triggered)
         {
             StartDialogue();
         }
-        else if (isDialogActive && Input.GetKeyDown(KeyCode.Space))
+        else if (isDialogActive && controls.Player.Interact.triggered)
         {
             sfxSource.PlayOneShot(skipAudioClip);
 
             if (isTyping)
             {
-                // finish current panel immediately
                 StopCoroutine(typingCoroutine);
                 dialogueText.text = dialogueLines[currentLineIndex];
                 isTyping = false;
             }
             else
             {
-                // move to next panel or end
                 currentLineIndex++;
                 if (currentLineIndex < dialogueLines.Length)
+                {
                     typingCoroutine = StartCoroutine(TypeLine(dialogueLines[currentLineIndex]));
+                }
                 else
+                {
                     EndDialogue();
+                }
             }
         }
     }
 
     void StartDialogue()
     {
-        isDialogActive   = true;
+        isDialogActive = true;
         currentLineIndex = 0;
 
-        // freeze player controls
+        // Freeze player movement
         if (playerMovement != null)
             playerMovement.enabled = false;
 
+        // Show dialogue UI
         dialoguePanel.SetActive(true);
 
-        // swap cameras
-        mainCamera.enabled     = false;
+        // Swap cameras
+        mainCamera.enabled = false;
         dialogueCamera.enabled = true;
 
         typingCoroutine = StartCoroutine(TypeLine(dialogueLines[0]));
@@ -113,21 +136,24 @@ public class NPCDialogue : MonoBehaviour
 
     IEnumerator TypeLine(string line)
     {
-        isTyping        = true;
-        dialogueText.text = string.Empty;
+        isTyping = true;
+        dialogueText.text = "";
 
         string[] words = line.Split(' ');
-        foreach (var word in words)
+        foreach (string word in words)
         {
-            // random snippet from speech clip
-            float maxStart = Mathf.Max(0f, speechSource.clip.length - audioSnippetDuration);
-            speechSource.time = Random.Range(0f, maxStart);
-            speechSource.Play();
+            // Play random snippet of speech clip
+            if (speechAudioClip != null)
+            {
+                float maxStart = Mathf.Max(0f, speechAudioClip.length - audioSnippetDuration);
+                speechSource.time = Random.Range(0f, maxStart);
+                speechSource.Play();
+            }
 
-            // append next word
-            dialogueText.text += (dialogueText.text.Length > 0 ? " " : string.Empty) + word;
+            dialogueText.text += (dialogueText.text.Length > 0 ? " " : "") + word;
 
             yield return new WaitForSeconds(wordDelay);
+
             speechSource.Stop();
         }
 
@@ -138,22 +164,22 @@ public class NPCDialogue : MonoBehaviour
     {
         isDialogActive = false;
 
-        // if transition is enabled and a scene name is set, load next scene
+        // Transition to another scene if enabled
         if (enableSceneTransition && !string.IsNullOrEmpty(nextSceneName))
         {
-            // ensure scene is added to Build Settings
             SceneManager.LoadScene(nextSceneName);
             return;
         }
 
-        // unfreeze player controls
+        // Unfreeze player
         if (playerMovement != null)
             playerMovement.enabled = true;
 
+        // Hide UI
         dialoguePanel.SetActive(false);
 
-        // swap cameras back
+        // Restore cameras
         dialogueCamera.enabled = false;
-        mainCamera.enabled     = true;
+        mainCamera.enabled = true;
     }
 }

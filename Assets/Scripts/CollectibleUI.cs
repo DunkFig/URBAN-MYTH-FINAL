@@ -36,7 +36,7 @@ public class CollectibleUI : MonoBehaviour
             case CollectibleType.Coin:
                 coinText.text = newCount.ToString();
 
-                if (newCount >= 50 && !rewardTriggered && secondaryScript != null)
+                if (newCount >= 2 && !rewardTriggered && secondaryScript != null)
                 {
                     rewardTriggered = true;
 

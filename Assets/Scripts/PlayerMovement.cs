@@ -1,27 +1,54 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
-    public float speed           = 5f;
-    public float jumpHeight      = 1.5f;
-    public float gravity         = -9.81f;
-    public float jumpCooldown    = 0.5f;   // seconds between jumps
+    public float speed = 5f;
+    public float jumpHeight = 1.5f;
+    public float gravity = -9.81f;
 
     [Header("Look Settings")]
-    public float   mouseSensitivity = 100f;
+    public float lookSensitivity = 2f;
     public Transform cameraTransform;
 
     private CharacterController controller;
-    private Vector3             velocity;
-    private float               xRotation;
-    private float               lastJumpTime = -999f;
+    private Vector3 velocity;
+    private float xRotation;
 
-    void Start()
+    private PlayerControls controls;
+    private Vector2 moveInput;
+    private Vector2 lookInput;
+    private bool jumpInput;
+
+    private float lastJumpTime = -999f;
+    public float jumpCooldown = 0.5f;
+
+    void Awake()
     {
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
+
+        controls = new PlayerControls();
+
+        controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+        controls.Player.Move.canceled += ctx => moveInput = Vector2.zero;
+
+        controls.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
+        controls.Player.Look.canceled += ctx => lookInput = Vector2.zero;
+
+        controls.Player.Jump.performed += ctx => jumpInput = true;
+    }
+
+    void OnEnable()
+    {
+        controls.Enable();
+    }
+
+    void OnDisable()
+    {
+        controls.Disable();
     }
 
     void Update()
@@ -32,36 +59,31 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleLook()
     {
-        float mx = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float my = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+        float mx = lookInput.x * lookSensitivity;
+        float my = lookInput.y * lookSensitivity;
 
-        xRotation = Mathf.Clamp(xRotation - my, -90f, 90f);
+        xRotation -= my;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+
         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
         transform.Rotate(Vector3.up * mx);
     }
 
     void HandleMoveAndJump()
     {
-        // 1) Move horizontally
-        Vector3 move = transform.right * Input.GetAxis("Horizontal")
-                     + transform.forward * Input.GetAxis("Vertical");
+        Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
         controller.Move(move * speed * Time.deltaTime);
 
-        // 2) Reset downward velocity when grounded, so gravity doesn't accumulate endlessly
         if (controller.isGrounded && velocity.y < 0f)
             velocity.y = -2f;
 
-        // 3) Jump on cooldown
-        if (Input.GetButtonDown("Jump") 
-            && Time.time >= lastJumpTime + jumpCooldown)
+        if (jumpInput && controller.isGrounded && Time.time >= lastJumpTime + jumpCooldown)
         {
-            // calculate initial velocity for desired jumpHeight
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             lastJumpTime = Time.time;
+            jumpInput = false; // Reset after jump
         }
 
-        // 4) Apply gravity and move vertically
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
     }

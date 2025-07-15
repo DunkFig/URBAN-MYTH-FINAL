@@ -12,6 +12,15 @@
 /[Uu]ser[Ss]ettings/
 *.log
 
+# pm2 log files
+*.log
+
+# npm debug logs
+npm-debug.log*
+
+# Ignore Node.js dependencies
+/Assets/Scripts/Server/node_modules/
+
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be commited to version control.
 *.blend1
 *.blend1.meta
