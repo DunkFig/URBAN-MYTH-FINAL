@@ -1,10 +1,11 @@
 // index.js
 require('dotenv').config(); // ⬅️ Use .env for safety!
+console.log("✅ OpenAI key loaded: ", process.env.OPENAI_API_KEY);
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const twilio = require('twilio');
 const { OpenAI } = require('openai');
-
 
 const app = express();
 
