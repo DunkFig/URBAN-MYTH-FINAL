@@ -20,6 +20,9 @@ public class MeshMover : MonoBehaviour
 
     public void StartMoving()
     {
+
+        FindObjectOfType<EndGameScript>().enabled = true;
+
         if (pathPoints.Count < 2 || meshToMove == null)
         {
             Debug.LogWarning("MeshMover: Not enough points or mesh not assigned.");
@@ -27,6 +30,7 @@ public class MeshMover : MonoBehaviour
         }
 
         StartCoroutine(MoveAlongPath());
+        FindObjectOfType<EndGameScript>().TriggerEndSequence();
     }
 
     IEnumerator MoveAlongPath()
