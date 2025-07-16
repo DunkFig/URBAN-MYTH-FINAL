@@ -13,7 +13,7 @@
 *.log
 
 #.env
-.env
+*.env
 
 # pm2 log files
 *.log
