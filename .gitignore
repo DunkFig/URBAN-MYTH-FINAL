@@ -12,6 +12,9 @@
 /[Uu]ser[Ss]ettings/
 *.log
 
+#.env
+.env
+
 # pm2 log files
 *.log
 
