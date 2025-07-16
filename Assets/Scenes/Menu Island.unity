@@ -9622,7 +9622,7 @@ MonoBehaviour:
   - point: {fileID: 1410875971}
     timeToNext: 12
   - point: {fileID: 1035781846}
-    timeToNext: 100
+    timeToNext: 60
   - point: {fileID: 1820456612}
     timeToNext: 30
   - point: {fileID: 1805728157}
@@ -16454,7 +16454,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 100000
-  field of view: 42
+  field of view: 28.2
   orthographic: 0
   orthographic size: 5
   m_Depth: 0
@@ -17619,8 +17619,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 050710b452000864799d7e2cb59d397a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  countdownTime: 65
-  finalDelayTime: 15
+  countdownTime: 50
+  finalDelayTime: 20
   gameOverPanel: {fileID: 818502011}
   finalBlackoutPanel: {fileID: 1530739338}
   gameOverImages: []
