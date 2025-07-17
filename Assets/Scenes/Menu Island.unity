@@ -1429,7 +1429,7 @@ MonoBehaviour:
   speed: 150
   jumpHeight: 50
   gravity: -140
-  lookSensitivity: 0.35
+  lookSensitivity: 3
   cameraTransform: {fileID: 2129222631}
   jumpCooldown: 2
 --- !u!1 &312213658
