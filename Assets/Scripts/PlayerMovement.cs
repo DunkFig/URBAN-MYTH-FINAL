@@ -18,9 +18,9 @@ public class PlayerMovement : MonoBehaviour
     private float xRotation;
 
     private PlayerControls controls;
-    private Vector2 moveInput;
-    private Vector2 lookInput;
-    private bool jumpInput;
+    private InputAction moveAction;
+    private InputAction lookAction;
+    private InputAction jumpAction;
 
     private float lastJumpTime = -999f;
     public float jumpCooldown = 0.5f;
@@ -31,25 +31,13 @@ public class PlayerMovement : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
 
         controls = new PlayerControls();
-
-        controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        controls.Player.Move.canceled += ctx => moveInput = Vector2.zero;
-
-        controls.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
-        controls.Player.Look.canceled += ctx => lookInput = Vector2.zero;
-
-        controls.Player.Jump.performed += ctx => jumpInput = true;
+        moveAction = controls.Player.Move;
+        lookAction = controls.Player.Look;
+        jumpAction = controls.Player.Jump;
     }
 
-    void OnEnable()
-    {
-        controls.Enable();
-    }
-
-    void OnDisable()
-    {
-        controls.Disable();
-    }
+    void OnEnable() => controls.Enable();
+    void OnDisable() => controls.Disable();
 
     void Update()
     {
@@ -59,8 +47,10 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleLook()
     {
-        float mx = lookInput.x * lookSensitivity;
-        float my = lookInput.y * lookSensitivity;
+        Vector2 look = lookAction.ReadValue<Vector2>();
+
+        float mx = look.x * lookSensitivity;
+        float my = look.y * lookSensitivity;
 
         xRotation -= my;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
@@ -71,17 +61,21 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleMoveAndJump()
     {
+        Vector2 moveInput = moveAction.ReadValue<Vector2>();
         Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
+
+        // Basic movement
         controller.Move(move * speed * Time.deltaTime);
 
+        // Gravity application
         if (controller.isGrounded && velocity.y < 0f)
             velocity.y = -2f;
 
-        if (jumpInput && controller.isGrounded && Time.time >= lastJumpTime + jumpCooldown)
+        // ✅ Jump allowed anywhere, only cooldown matters
+        if (jumpAction.WasPressedThisFrame() && Time.time >= lastJumpTime + jumpCooldown)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             lastJumpTime = Time.time;
-            jumpInput = false; // Reset after jump
         }
 
         velocity.y += gravity * Time.deltaTime;
