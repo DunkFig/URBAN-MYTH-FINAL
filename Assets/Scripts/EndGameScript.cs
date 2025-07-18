@@ -12,6 +12,12 @@ public class EndGameScript : MonoBehaviour
     public float countdownTime = 10f;   // Time before Game Over panel fades in
     public float finalDelayTime = 5f;   // Time before final fade & scene change
 
+    [Tooltip("Optional: AudioSource attached to a mesh that should play at start of countdown")]
+    public AudioSource meshAudioSource;
+
+    [Tooltip("Optional: GameObject whose AudioSources should be muted at start")]
+    public GameObject objectToMute;
+
     [Header("UI")]
     public CanvasGroup gameOverPanel;   // Panel that says "Game Over"
     public CanvasGroup finalBlackoutPanel; // Final black fade-out
@@ -59,13 +65,15 @@ public class EndGameScript : MonoBehaviour
     {
         Debug.Log("🔴 EndGameScript triggered!");
 
-        // ✅ Mute all other audio except end track
-        allAudioSources = FindObjectsOfType<AudioSource>();
-        foreach (AudioSource src in allAudioSources)
+        // ✅ Mute other main song  audio 
+        if (objectToMute != null)
+    {
+        AudioSource[] sourcesToMute = objectToMute.GetComponentsInChildren<AudioSource>();
+        foreach (AudioSource src in sourcesToMute)
         {
-            if (src != endTrackAudio)
-                src.mute = true;
+            src.mute = true;
         }
+    }
 
         // ✅ Play the end track
         if (!endTrackAudio.isPlaying)
@@ -78,6 +86,11 @@ public class EndGameScript : MonoBehaviour
     IEnumerator EndSequence()
     {
         float t = 0f;
+
+        if (meshAudioSource != null && !meshAudioSource.isPlaying)
+            {
+                meshAudioSource.Play();
+            }
 
         // Store initial values
         float initialContrast = colorAdjustments.contrast.value;

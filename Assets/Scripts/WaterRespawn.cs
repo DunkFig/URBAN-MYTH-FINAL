@@ -1,75 +1,78 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(AudioSource))]
 public class WaterRespawn : MonoBehaviour
 {
     [Header("Player to check")]
-    public Transform playerTransform;
+    [SerializeField] Transform playerTransform;
 
     [Header("Walkable Land Parent")]
-    public Transform walkableMeshesParent;
+    [SerializeField] Transform walkableMeshesParent;
 
     [Header("Water Level")]
-    public float waterHeight = 0f;
+    [SerializeField] float waterHeight = 0f;
 
     [Header("Safe Respawn Offset")]
-    public float heightAboveGround = 2f;
+    [SerializeField] float heightAboveGround = 2f;
 
     [Header("Respawn Sound")]
-    public AudioClip respawnClip;
+    [SerializeField] AudioClip respawnClip;
 
-    private AudioSource audioSource;
+    AudioSource      audioSource;
+    PlayerControls   controls;
 
-    void Start()
+    /*──────────────────────────────────────────*/
+    void Awake()
     {
-        // Create or get the AudioSource
         audioSource = gameObject.AddComponent<AudioSource>();
+        controls    = new PlayerControls();         // generated input‑actions asset
     }
+
+    void OnEnable()  => controls.Enable();          // <<< start pumping input
+    void OnDisable() => controls.Disable();
 
     void Update()
     {
-        if (HasPlayerFallenIntoWater())
-        {
-            Transform nearestLand = FindNearestWalkableMesh();
-            if (nearestLand != null)
-            {
-                Vector3 safePosition = nearestLand.position + Vector3.up * heightAboveGround;
-                playerTransform.position = safePosition;
-
-                Debug.Log("Player respawned to: " + safePosition);
-
-                PlayRespawnSound();
-            }
-        }
+        if (HasPlayerFallenIntoWater() || PlayerPressedRespawn())
+            Respawn();
     }
 
-    bool HasPlayerFallenIntoWater()
+    /*──────── helpers ────────*/
+    bool HasPlayerFallenIntoWater() =>
+        playerTransform.position.y < waterHeight;
+
+    bool PlayerPressedRespawn()
     {
-        return playerTransform.position.y < waterHeight;
+        // Triangle / Y / X (Switch) – make sure “Interact3” is a **Button**
+        if (controls.Player.Interact3.WasPerformedThisFrame())
+            return true;
+
+        // Keyboard fallback (R)
+        return Keyboard.current?.rKey.wasPressedThisFrame ?? false;
+    }
+
+    void Respawn()
+    {
+        var nearest = FindNearestWalkableMesh();
+        if (nearest == null) return;
+
+        Vector3 safePos = nearest.position + Vector3.up * heightAboveGround;
+        playerTransform.position = safePos;
+
+        if (respawnClip) audioSource.PlayOneShot(respawnClip);
     }
 
     Transform FindNearestWalkableMesh()
     {
         Transform closest = null;
-        float closestDistanceSqr = Mathf.Infinity;
+        float minDistSq   = float.MaxValue;
 
         foreach (Transform child in walkableMeshesParent)
         {
-            float distanceSqr = (child.position - playerTransform.position).sqrMagnitude;
-            if (distanceSqr < closestDistanceSqr)
-            {
-                closest = child;
-                closestDistanceSqr = distanceSqr;
-            }
+            float d = (child.position - playerTransform.position).sqrMagnitude;
+            if (d < minDistSq) { closest = child; minDistSq = d; }
         }
-
         return closest;
-    }
-
-    void PlayRespawnSound()
-    {
-        if (respawnClip != null && audioSource != null)
-        {
-            audioSource.PlayOneShot(respawnClip);
-        }
     }
 }

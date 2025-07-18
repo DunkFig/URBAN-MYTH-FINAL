@@ -71,6 +71,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interact 3"",
+                    ""type"": ""Button"",
+                    ""id"": ""6bb97da8-7937-4d03-97a0-2b4ec9df044a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -128,6 +137,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Interact 2"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4fc6fdb1-6a17-42b9-ad75-180b97599b1b"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Interact 3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -147,6 +167,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         m_Player_Interact2 = m_Player.FindAction("Interact 2", throwIfNotFound: true);
+        m_Player_Interact3 = m_Player.FindAction("Interact 3", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -218,6 +239,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Interact;
     private readonly InputAction m_Player_Interact2;
+    private readonly InputAction m_Player_Interact3;
     public struct PlayerActions
     {
         private @PlayerControls m_Wrapper;
@@ -227,6 +249,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @Interact => m_Wrapper.m_Player_Interact;
         public InputAction @Interact2 => m_Wrapper.m_Player_Interact2;
+        public InputAction @Interact3 => m_Wrapper.m_Player_Interact3;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -251,6 +274,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Interact2.started += instance.OnInteract2;
             @Interact2.performed += instance.OnInteract2;
             @Interact2.canceled += instance.OnInteract2;
+            @Interact3.started += instance.OnInteract3;
+            @Interact3.performed += instance.OnInteract3;
+            @Interact3.canceled += instance.OnInteract3;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -270,6 +296,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Interact2.started -= instance.OnInteract2;
             @Interact2.performed -= instance.OnInteract2;
             @Interact2.canceled -= instance.OnInteract2;
+            @Interact3.started -= instance.OnInteract3;
+            @Interact3.performed -= instance.OnInteract3;
+            @Interact3.canceled -= instance.OnInteract3;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -303,5 +332,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnJump(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
         void OnInteract2(InputAction.CallbackContext context);
+        void OnInteract3(InputAction.CallbackContext context);
     }
 }

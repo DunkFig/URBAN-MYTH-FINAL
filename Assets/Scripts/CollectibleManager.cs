@@ -9,34 +9,36 @@ public class CollectibleManager : MonoBehaviour
     // Fired when any type’s count changes: (type, newCount)
     public static event Action<CollectibleType, int> OnTypeCountChanged;
 
-    // Internal counts for each type
+    // Internal counts
     private Dictionary<CollectibleType, int> counts = new Dictionary<CollectibleType, int>()
     {
         { CollectibleType.Coin, 0 },
-        { CollectibleType.Gem,  0 },
-        { CollectibleType.Key,  0 }
+        // Add other types if needed
     };
 
     void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject); // Prevent duplicates
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject); // Persist across scenes
     }
 
-    /// <summary>
-    /// Call to add value for a given type.
-    /// </summary>
     public void Add(CollectibleType type, int amount)
     {
+        if (!counts.ContainsKey(type))
+            counts[type] = 0;
+
         counts[type] += amount;
         OnTypeCountChanged?.Invoke(type, counts[type]);
     }
 
-    /// <summary>
-    /// Get the current count for a given type.
-    /// </summary>
     public int GetCount(CollectibleType type)
     {
-        return counts[type];
+        return counts.TryGetValue(type, out int count) ? count : 0;
     }
 }

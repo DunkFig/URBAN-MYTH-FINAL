@@ -5,8 +5,7 @@ public class CollectibleUI : MonoBehaviour
 {
     [Header("Assign your TMP Text fields here")]
     public TMP_Text coinText;
-    public TMP_Text gemText;
-    public TMP_Text keyText;
+
 
     [Header("Script to trigger when 50 coins are found")]
     public MonoBehaviour secondaryScript; // generic reference — can be any script
@@ -20,8 +19,7 @@ public class CollectibleUI : MonoBehaviour
 
         // Initialize display
         coinText.text = CollectibleManager.Instance.GetCount(CollectibleType.Coin).ToString();
-        gemText.text  = CollectibleManager.Instance.GetCount(CollectibleType.Gem).ToString();
-        keyText.text  = CollectibleManager.Instance.GetCount(CollectibleType.Key).ToString();
+        
     }
 
     void OnDisable()
@@ -43,14 +41,6 @@ public class CollectibleUI : MonoBehaviour
                     // Call the method on the secondary script
                     secondaryScript.SendMessage("TriggerReward");
                 }
-                break;
-
-            case CollectibleType.Gem:
-                gemText.text = newCount.ToString();
-                break;
-
-            case CollectibleType.Key:
-                keyText.text = newCount.ToString();
                 break;
         }
     }

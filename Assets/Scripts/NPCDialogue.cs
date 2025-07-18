@@ -30,12 +30,12 @@ public class NPCDialogue : MonoBehaviour
     [Header("Scene Transition")]
     public bool enableSceneTransition = false;
 
-#if UNITY_EDITOR
-    [Tooltip("Drag the Scene asset you want to load (must be added to Build Settings)")]
-    public SceneAsset nextSceneAsset;
-#endif
+// #if UNITY_EDITOR
+//     [Tooltip("Drag the Scene asset you want to load (must be added to Build Settings)")]
+//     public SceneAsset nextSceneAsset;
+// #endif
 
-    private string nextSceneName;
+    // private string nextSceneName;
 
     // Audio
     private AudioSource speechSource, sfxSource;
@@ -56,10 +56,10 @@ public class NPCDialogue : MonoBehaviour
         sfxSource = gameObject.AddComponent<AudioSource>();
         speechSource.clip = speechAudioClip;
 
-#if UNITY_EDITOR
-        if (nextSceneAsset != null)
-            nextSceneName = nextSceneAsset.name;
-#endif
+// #if UNITY_EDITOR
+//         if (nextSceneAsset != null)
+//             nextSceneName = nextSceneAsset.name;
+// #endif
 
         // Hide dialogue UI and camera
         dialoguePanel.SetActive(false);
@@ -164,10 +164,10 @@ public class NPCDialogue : MonoBehaviour
     {
         isDialogActive = false;
 
-        // Transition to another scene if enabled
-        if (enableSceneTransition && !string.IsNullOrEmpty(nextSceneName))
+        // // Transition to another scene if enabled
+        if (enableSceneTransition)
         {
-            SceneManager.LoadScene(nextSceneName);
+            SceneManager.LoadScene(sceneBuildIndex: 02);
             return;
         }
 

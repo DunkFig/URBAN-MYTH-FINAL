@@ -17,6 +17,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Improv Scene.unity
     guid: 6caac7050bac1024a8ac78e3d8f1141f
+  - enabled: 1
+    path: Assets/Scenes/Explainer.unity
+    guid: a92ba89006ce24767ae5357d24295967
+  - enabled: 1
+    path: Assets/Scenes/Darkness.unity
+    guid: 67f78523ec3594ceca8ada1640c9c43a
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 6817dfe7e05e5954994bfa36d7856035, type: 2}
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: dc5a169419fa04987b057f65238cf3ba, type: 2}
